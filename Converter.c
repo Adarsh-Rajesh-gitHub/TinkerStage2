@@ -71,7 +71,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             }
             break;
         case 15: 
-            if(L == 0) return 0;
+            if(L == 0) return 2;
             else if(L == 3) {
                 if(registers[rs] == 0) {
                     uint64_t input;
