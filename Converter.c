@@ -1,0 +1,184 @@
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <ctype.h>
+#include <inttypes.h>
+
+//memory of the simulation
+uint8_t memory[512*1024] = {0};
+uint64_t registers[32];
+//31st register is stack ptr
+
+//check if opcode, registers, label, pc are within bounds, check if insturction is empty in right place
+int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uint32_t rt, uint32_t L, uint64_t *pc) {
+    if(rd < 0 || rd > 30 || rs < 0 || rs > 30 || rt < 0 || rt > 30
+        || op < 0 || op > 29 || L > 0xFFF || *pc < 0x1000 || *pc > 512*1024-5) return 1;
+    //empty places there need to implement check
+    return 0;
+}
+
+//cpu can operate on same bits between signed and unsigned so only castin necessary(mult and div)
+//for floating pt casting changes the bits internally before performing operation
+//ex if uint32_t has 00...01 then it wil change it to floating poitn represnation of 1.0 and then do op which mutates orginal val 
+//so memcpy used to put it in float type then do op and then memcpy it back into the uint32_t
+//memocopy  memcpy, two new operands
+int execute(uint32_t instruction, uint64_t *pc) {
+    uint32_t op = (instruction >> 27) & 0x1F;
+    uint32_t rd = (instruction >> 22) & 0x1F;
+    uint32_t rs = (instruction >> 17) & 0x1F;
+    uint32_t rt = (instruction >> 12) & 0x1F;
+    uint32_t L = (instruction) & 0xFFF;
+    //checking if valid instruction:
+    if(checkBounds(instruction, op, rd, rs, rt, L, pc)) {
+        return 1;
+    }
+    //for brr(as only there is label signed)
+    int32_t Ls = (int32_t)(L << 20);
+    Ls>>=20;
+    *pc+=4;
+    double rss;
+    double rtt;
+    switch(op) {
+        case 0: registers[rd] = registers[rs] & registers[rt]; break;
+        case 1: registers[rd] = registers[rs] | registers[rt]; break;
+        case 2: registers[rd] = registers[rs] ^ registers[rt]; break;
+        case 3: registers[rd] = ~registers[rs]; break;
+        case 4: registers[rd] = registers[rs] >> registers[rt]; break;
+        case 5: registers[rd] >>= L; break;
+        case 6: registers[rd] = registers[rs] << registers[rt]; break;
+        case 7: registers[rd] <<= L; break;
+        case 8: *pc = registers[rd]; break;
+        case 9: *pc += registers[rd]-4; break;
+        case 10: *pc+= Ls-4; break;
+        case 11: 
+            if(registers[rs] != 0)  *pc = registers[rd]; 
+            break;
+        case 12:
+            uint32_t inst;
+            memcpy(&inst, &memory[registers[rd]], sizeof(uint32_t));
+            execute(inst, pc);
+            registers[31] = registers[rd];
+            break;
+        case 13: 
+            *pc = memory[registers[31]];
+        case 14:
+            if(registers[rs] > registers[rt]) {
+                *pc = registers[rd];
+            }
+            break;
+        case 15: 
+            if(L == 0) return 0;
+            else if(L == 3) {
+                if(registers[rs] == 0) {
+                    uint64_t input;
+                    if(1 != scanf("%llu", &input)) {
+                        return 1; 
+                    }
+                    rd = input;
+                }
+            }
+            else if(L == 4) {
+                    if(registers[rd] == 1) {
+                    printf("%llu\n", registers[rs]);
+                }
+            } 
+            else return 1;
+        case 16: 
+            memcpy(&registers[rd], &memory[registers[rs] + L], sizeof(uint32_t)); break;
+        case 17:
+            registers[rd] = registers[rs]; break;
+        case 18:
+            uint64_t temp = 0;
+            temp = registers[rd] & 0xFFFFFFFFFFFFF;
+            registers[rd] = 0;
+            registers[rd] = L << 52;
+            registers[rd] += temp;
+            break;
+        case 19:
+            memcpy(&memory[registers[rd] + L], &registers[rs], sizeof(uint64_t));
+        case 20:
+            memcpy(&rss, &registers[rs], sizeof(uint64_t));
+            memcpy(&rtt, &registers[rt], sizeof(uint64_t));
+            rtt+=rss;
+            memcpy(&registers[rd], &rtt, sizeof(double));
+            break;
+        case 21:
+            memcpy(&rss, &registers[rs], sizeof(uint64_t));
+            memcpy(&rtt, &registers[rt], sizeof(uint64_t));
+            rtt-=rss;
+            memcpy(&registers[rd], &rtt, sizeof(double));
+            break;
+        case 22:
+            memcpy(&rss, &registers[rs], sizeof(uint64_t));
+            memcpy(&rtt, &registers[rt], sizeof(uint64_t));
+            rtt*=rss;
+            memcpy(&registers[rd], &rtt, sizeof(double));
+            break;
+        case 23:
+            memcpy(&rss, &registers[rs], sizeof(uint64_t));
+            memcpy(&rtt, &registers[rt], sizeof(uint64_t));
+            rtt/=rss;
+            memcpy(&registers[rd], &rtt, sizeof(double));
+            break;
+        case 24: registers[rd] = registers[rs] + registers[rt]; break;
+        case 25: registers[rd] = registers[rd] + L; break;
+        case 26: registers[rd] = registers[rs] - registers[rt]; break;
+        case 27: registers[rd] = registers[rd] - L; break;
+        case 28: registers[rd] = (int32_t)registers[rs] * (int32_t)registers[rt]; break;
+        case 29: registers[rd] = (int32_t)registers[rs] / (int32_t)registers[rt]; break;
+        default:
+            return 1;
+        return 0;
+    }
+
+}
+
+
+
+int main(int argc, char* args[]) {
+
+    //file input 
+    if(argc != 2) {
+        fprintf(stderr, "given wrong number of args");
+        return 1;
+    }
+    char* inputFile = args[1];
+    FILE *fp = fopen(inputFile, "rb");
+    if(!fp) {
+        fprintf(stderr, "Invalid tinker filepath");
+        return 1;
+    }
+    //reads in input from file
+    uint64_t pc = 0x1000;
+    size_t itemsRead = fread(&memory[pc], sizeof(uint32_t), (sizeof(memory)-pc)/sizeof(uint32_t), fp);
+    fclose(fp);
+    int end = itemsRead + 0x1000;
+    registers[31] = sizeof(memory);
+
+    while(1) {
+        uint32_t instruction;
+        memcpy(&instruction, &memory[pc], sizeof(uint32_t));
+        int res = execute(instruction, &pc);
+
+        if(res == 1) {
+            fprintf(stderr, "Simulation error");
+            return 1;
+        }
+        else if (res == 2) {
+            return 0;
+        }
+        
+    }
+
+
+    return 0;
+    
+
+
+
+
+}
