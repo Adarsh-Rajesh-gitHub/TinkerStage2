@@ -153,7 +153,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] += temp;
             break;
         case 19:
-            memcpy(&memory[registers[rd] + L], &registers[rs], sizeof(uint64_t)); break;
+            memcpy(&memory[registers[rd] + Ls], &registers[rs], sizeof(uint64_t)); break;
             // int64_t addrr=(int64_t)registers[rd]+convt(L);
             // if(addrr<0||addrr+8>(int64_t)sizeof(memory)||(addrr&7)) return 1;
             // memcpy(&memory[addrr],&registers[rs],8);
