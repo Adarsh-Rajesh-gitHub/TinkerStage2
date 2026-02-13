@@ -67,7 +67,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 13: 
             *pc = memory[registers[31]-8]; break;
         case 14:
-            if(registers[rs] > registers[rt]) {
+            if((int64_t)registers[rs] > (int64_t)registers[rt]) {
                 *pc = registers[rd];
             }
             break;
@@ -90,7 +90,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             else return 1;
             break;
         case 16: 
-            memcpy(&registers[rd], &memory[registers[rs] + L], sizeof(uint32_t)); break;
+            memcpy(&registers[rd], &memory[registers[rs] + L], sizeof(uint64_t)); break;
         case 17:
             registers[rd] = registers[rs]; break;
         case 18:
@@ -123,8 +123,8 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 23:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
             memcpy(&rtt, &registers[rt], sizeof(uint64_t));
-            rtt/=rss;
-            memcpy(&registers[rd], &rtt, sizeof(double));
+            rss/=rtt;
+            memcpy(&registers[rd], &rss, sizeof(double));
             break;
         case 24: registers[rd] = registers[rs] + registers[rt]; break;
         case 25: registers[rd] = registers[rd] + L; break;
