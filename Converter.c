@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <errno.h>
 
 //memory of the simulation
 uint8_t memory[512*1024] = {0};
@@ -18,6 +19,21 @@ bool badMem(uint64_t mem, int amtNeeded) {
     return !(mem >= 0x1000 && mem <= 512*1024-(amtNeeded) && mem%4 == 0);
 }
 
+static int readStrict(uint64_t *out) {
+    char buf[256];
+    if(scanf("%255s", buf) != 1) return 0; 
+    if(buf[0] == '-' || buf[0] == '+') return 0;
+    for(size_t i = 0; buf[i]; i++) {
+        if(!isdigit((unsigned char)buf[i])) return 0;
+    }
+    errno = 0;
+    char *end = NULL;
+    unsigned long long v = strtoull(buf, &end, 10);
+    if(errno != 0 || end == NULL || *end != '\0') return 0;
+
+    *out = (uint64_t)v;
+    return 1;
+}
 //check if opcode, registers, label, pc are within bounds, check if insturction is empty in right place
 int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uint32_t rt, uint32_t L, uint64_t *pc) {
     if(rd < 0 || rd > 31 || rs < 0 || rs > 31 || rt < 0 || rt > 31
@@ -131,11 +147,14 @@ int execute(uint32_t instruction, uint64_t *pc) {
             if(L == 0) return 2;
             else if(L == 3) {
                 if(registers[rs] == 0) {
-                    uint64_t input;
-                    if(1 != scanf("%llu", &input)) {
-                        return 1; 
-                    }
-                    registers[rd] = input;
+                    // uint64_t input;
+                    // if(1 != scanf("%llu", &input)) {
+                    //     return 1; 
+                    // }
+                    // registers[rd] = input;
+                        uint64_t input;
+                        if(!readStrict(&input)) return 1;
+                        registers[rd] = input;
                 }
             }
             else if(L == 4) {
