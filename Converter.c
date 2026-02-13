@@ -146,11 +146,14 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 17:
             registers[rd] = registers[rs]; break;
         case 18:
-            temp = 0;
-            temp = registers[rd] & ((1ULL << 52)-1);
-            registers[rd] = 0;
-            registers[rd] = ((uint64_t)L & 0xFFF) << 52;
-            registers[rd] |= temp;
+            // temp = 0;
+            // temp = registers[rd] & ((1ULL << 52)-1);
+            // registers[rd] = 0;
+            // registers[rd] = ((uint64_t)L & 0xFFF) << 52;
+            // registers[rd] |= temp;
+            registers[rd] >>= 12;
+            registers[rd] <<= 12;
+            registers[rd] |= L;
             break;
         case 19:
             memcpy(&memory[registers[rd] + Ls], &registers[rs], sizeof(uint64_t)); break;
@@ -207,6 +210,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
 int main(int argc, uint32_t *args[]) {
 
     //file input 
+
     if(argc != 2) {
         fprintf(stderr, "Invalid tinker filepath\n");
         return 1;
