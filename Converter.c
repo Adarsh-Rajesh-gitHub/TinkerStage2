@@ -15,7 +15,7 @@ uint64_t registers[32];
 
 //returns true if mem bad
 bool badMem(uint64_t mem, int amtNeeded) {
-    return !(mem >= 0x1000 && mem <= 512*1024-(amtNeeded) && mem%4 == 0);
+    return !(mem >= 0x1000 && mem <= 512*1024-(amtNeeded) && mem%amtNeeded == 0);
 }
 
 //check if opcode, registers, label, pc are within bounds, check if insturction is empty in right place
@@ -84,6 +84,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
     int32_t Ls = (int32_t)(L << 20);
     Ls>>=20;
     *pc+=4;
+    int64_t address;
     double rss;
     double rtt;
     switch(op) {
@@ -145,7 +146,8 @@ int execute(uint32_t instruction, uint64_t *pc) {
             else return 1;
             break;
         case 16: 
-            if(badMem(registers[rs] + Ls, 8)) return 1;
+            address = (int64_t)registers[rs] + (int64_t)Ls;
+            if(badMem((uint64_t)address, 8)) return 1;
              memcpy(&registers[rd], &memory[registers[rs] + Ls], sizeof(uint64_t)); break;
             // int64_t addr=(int64_t)registers[rs]+convt(L);
             // if(addr<0||addr+8>(int64_t)sizeof(memory)||(addr&7)) return 1;
@@ -164,7 +166,9 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] |= L;
             break;
         case 19:
-            if(badMem(registers[rd] + Ls, 8)) return 1;
+            address = (int64_t)registers[rd] + (int64_t)Ls;
+            if(badMem((uint64_t)address, 8)) return 1;
+            //if(badMem(registers[rd] + Ls, 8)) return 1;
             memcpy(&memory[registers[rd] + Ls], &registers[rs], sizeof(uint64_t)); break;
             // int64_t addrr=(int64_t)registers[rd]+convt(L);
             // if(addrr<0||addrr+8>(int64_t)sizeof(memory)||(addrr&7)) return 1;
