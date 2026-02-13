@@ -166,8 +166,8 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] |= L;
             break;
         case 19:
-            address = (int64_t)registers[rd] + (int64_t)Ls;
-            if(badMem((uint64_t)address, 8)) return 1;
+            // address = (int64_t)registers[rd] + (int64_t)Ls;
+            // if(badMem((uint64_t)address, 8)) return 1;
             //if(badMem(registers[rd] + Ls, 8)) return 1;
             memcpy(&memory[registers[rd] + Ls], &registers[rs], sizeof(uint64_t)); break;
             // int64_t addrr=(int64_t)registers[rd]+convt(L);
