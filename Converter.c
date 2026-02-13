@@ -14,14 +14,14 @@ uint64_t registers[32];
 //31st register is stack ptr
 
 //returns true if mem bad
-bool badMem(uint64_t mem) {
-    return !(mem >= 0x1000 && mem < 512*1024-5 && mem%4 == 0);
+bool badMem(uint64_t mem, int amtNeeded) {
+    return !(mem >= 0x1000 && mem < 512*1024-(amtNeeded+1) && mem%4 == 0);
 }
 
 //check if opcode, registers, label, pc are within bounds, check if insturction is empty in right place
 int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uint32_t rt, uint32_t L, uint64_t *pc) {
     if(rd < 0 || rd > 31 || rs < 0 || rs > 31 || rt < 0 || rt > 31
-        || op < 0 || op > 29 || L > 0xFFF || badMem(*pc)) return 1;
+        || op < 0 || op > 29 || L > 0xFFF || badMem(*pc, 4)) return 1;
             switch(op) {
         case 0: if(L!=0) return 1; break;
         case 1: if(L!=0) return 1; break;
@@ -107,6 +107,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             // registers[31]-=8;
             // memcpy(&memory[registers[31]], &temp, sizeof(uint64_t));
             // *pc = registers[rd];
+            if(badMem(registers[31]-8, 8)) return 1;
             memcpy(&memory[registers[31]-8], pc, sizeof(uint64_t));
             *pc=registers[rd];
             // memcpy(&inst, &memory[*pc], sizeof(uint32_t));
@@ -117,6 +118,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             // memcpy(&temp, &memory[registers[31]], sizeof(uint64_t));
             // *pc = temp;
             // registers[31] += 8;    uint64_t ret;
+            if(badMem(registers[31]-8, 8)) return 1;
             memcpy(pc,&memory[registers[31]-8],8);
             break;
         case 14:
@@ -143,6 +145,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             else return 1;
             break;
         case 16: 
+            if(badMem(registers[rs] + Ls, 8)) return 1;
              memcpy(&registers[rd], &memory[registers[rs] + Ls], sizeof(uint64_t)); break;
             // int64_t addr=(int64_t)registers[rs]+convt(L);
             // if(addr<0||addr+8>(int64_t)sizeof(memory)||(addr&7)) return 1;
@@ -161,6 +164,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] |= L;
             break;
         case 19:
+            if(badMem(registers[rd] + Ls, 8)) return 1;
             memcpy(&memory[registers[rd] + Ls], &registers[rs], sizeof(uint64_t)); break;
             // int64_t addrr=(int64_t)registers[rd]+convt(L);
             // if(addrr<0||addrr+8>(int64_t)sizeof(memory)||(addrr&7)) return 1;
