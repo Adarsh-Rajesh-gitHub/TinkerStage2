@@ -62,20 +62,24 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 11: 
             if(registers[rs] != 0)  *pc = registers[rd]; 
             break;
-        case 12:
-            // uint32_t inst;
-            temp = *pc;
-            registers[31]-=8;
-            memcpy(&memory[registers[31]], &temp, sizeof(uint64_t));
-            *pc = registers[rd];
-            // memcpy(&inst, &memory[*pc], sizeof(uint32_t));
-            // execute(inst, pc);
+        case 12: 
+            uint64_t rett=*pc; 
+            if(registers[31]<8) return 1;
+            uint64_t s=registers[31]-8;
+            if(s+8>sizeof(memory)) return 1;
+            if(s&7) return 1;
+            registers[31]=s;
+            memcpy(&memory[s],&rett,8);
+            *pc=registers[rd];
             break;
         case 13: 
-            temp;
-            memcpy(&temp, &memory[registers[31]], sizeof(uint64_t));
-            *pc = temp;
-            registers[31] += 8;
+            uint64_t sp=registers[31];
+            if(sp+8>sizeof(memory)) return 1;
+            if(sp&7) return 1;
+            uint64_t ret;
+            memcpy(&ret,&memory[sp],8);
+            registers[31]=sp+8;
+            *pc=ret;
             break;
         case 14:
             if((int64_t)registers[rs] > (int64_t)registers[rt]) {
