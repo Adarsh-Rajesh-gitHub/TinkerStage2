@@ -92,7 +92,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             else return 1;
             break;
         case 16: 
-            memcpy(&registers[rd], &memory[registers[rs] + Ls], sizeof(uint64_t)); break;
+            memcpy(&registers[rd], &memory[registers[rs] + L], sizeof(uint64_t)); break;
         case 17:
             registers[rd] = registers[rs]; break;
         case 18:
@@ -103,7 +103,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] += temp;
             break;
         case 19:
-            memcpy(&memory[registers[rd] + Ls], &registers[rs], sizeof(uint64_t)); break;
+            memcpy(&memory[registers[rd] + L], &registers[rs], sizeof(uint64_t)); break;
         case 20:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
             memcpy(&rtt, &registers[rt], sizeof(uint64_t));
