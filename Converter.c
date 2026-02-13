@@ -116,9 +116,9 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] += temp;
             break;
         case 19:
-            int64_t addr=(int64_t)registers[rd]+convt(L);
-            if(addr<0||addr+8>(int64_t)sizeof(memory)||(addr&7)) return 1;
-            memcpy(&memory[addr],&registers[rs],8);
+            int64_t addrr=(int64_t)registers[rd]+convt(L);
+            if(addrr<0||addrr+8>(int64_t)sizeof(memory)||(addrr&7)) return 1;
+            memcpy(&memory[addrr],&registers[rs],8);
             break;
         case 20:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
