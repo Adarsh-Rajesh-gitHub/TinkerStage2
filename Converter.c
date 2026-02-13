@@ -97,7 +97,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             uint64_t temp = 0;
             temp = registers[rd] & 0xFFFFFFFFFFFFF;
             registers[rd] = 0;
-            registers[rd] = L << 52;
+            registers[rd] = (uint64_t)L << 52;
             registers[rd] += temp;
             break;
         case 19:
@@ -123,6 +123,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 23:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
             memcpy(&rtt, &registers[rt], sizeof(uint64_t));
+            if(rtt == 0) return 1;
             rss/=rtt;
             memcpy(&registers[rd], &rss, sizeof(double));
             break;
@@ -131,7 +132,9 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 26: registers[rd] = registers[rs] - registers[rt]; break;
         case 27: registers[rd] = registers[rd] - L; break;
         case 28: registers[rd] = (int32_t)registers[rs] * (int32_t)registers[rt]; break;
-        case 29: registers[rd] = (int32_t)registers[rs] / (int32_t)registers[rt]; break;
+        case 29: 
+            if(registers[rt] == 0) return 1;
+            registers[rd] = (int32_t)registers[rs] / (int32_t)registers[rt]; break;
         default:
             return 1;
         return 0;
