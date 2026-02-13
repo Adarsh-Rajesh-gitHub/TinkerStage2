@@ -10,7 +10,7 @@
 
 //memory of the simulation
 uint8_t memory[512*1024] = {0};
-uint64_t registers[32];
+uint64_t registers[23];
 //31st register is stack ptr
 
 //check if opcode, registers, label, pc are within bounds, check if insturction is empty in right place
@@ -59,12 +59,13 @@ int execute(uint32_t instruction, uint64_t *pc) {
             break;
         case 12:
             uint32_t inst;
-            memcpy(&inst, &memory[registers[rd]], sizeof(uint32_t));
-            execute(inst, pc);
-            registers[31] = registers[rd];
+            memcpy(&memory[registers[31]-8], pc, sizeof(uint64_t));
+            *pc = registers[rd];
+            // memcpy(&inst, &memory[*pc], sizeof(uint32_t));
+            // execute(inst, pc);
             break;
         case 13: 
-            *pc = memory[registers[31]];
+            *pc = memory[registers[31]-8]; break;
         case 14:
             if(registers[rs] > registers[rt]) {
                 *pc = registers[rd];
@@ -87,6 +88,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
                 }
             } 
             else return 1;
+            break;
         case 16: 
             memcpy(&registers[rd], &memory[registers[rs] + L], sizeof(uint32_t)); break;
         case 17:
@@ -99,7 +101,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] += temp;
             break;
         case 19:
-            memcpy(&memory[registers[rd] + L], &registers[rs], sizeof(uint64_t));
+            memcpy(&memory[registers[rd] + L], &registers[rs], sizeof(uint64_t)); break;
         case 20:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
             memcpy(&rtt, &registers[rt], sizeof(uint64_t));
