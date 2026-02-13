@@ -79,7 +79,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
                     if(1 != scanf("%llu", &input)) {
                         return 1; 
                     }
-                    rd = input;
+                    registers[rd] = input;
                 }
             }
             else if(L == 4) {
