@@ -144,9 +144,8 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] = (int32_t)registers[rs] / (int32_t)registers[rt]; break;
         default:
             return 1;
-        return 0;
     }
-
+    return 0;
 }
 
 
