@@ -20,6 +20,10 @@ int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uin
     //empty places there need to implement check
     return 0;
 }
+static inline int32_t convt(uint32_t L){
+    int32_t x=(int32_t)(L<<20);
+    return x>>20;
+}
 
 //cpu can operate on same bits between signed and unsigned so only castin necessary(mult and div)
 //for floating pt casting changes the bits internally before performing operation
@@ -97,7 +101,11 @@ int execute(uint32_t instruction, uint64_t *pc) {
             else return 1;
             break;
         case 16: 
-            memcpy(&registers[rd], &memory[registers[rs] + L], sizeof(uint64_t)); break;
+            int64_t addr=(int64_t)registers[rs]+convt(L);
+            if(addr<0||addr+8>(int64_t)sizeof(memory)||(addr&7)) return 1;
+            memcpy(&registers[rd],&memory[addr],8);
+            break;
+
         case 17:
             registers[rd] = registers[rs]; break;
         case 18:
@@ -108,7 +116,10 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] += temp;
             break;
         case 19:
-            memcpy(&memory[registers[rd] + L], &registers[rs], sizeof(uint64_t)); break;
+            int64_t addr=(int64_t)registers[rd]+convt(L);
+            if(addr<0||addr+8>(int64_t)sizeof(memory)||(addr&7)) return 1;
+            memcpy(&memory[addr],&registers[rs],8);
+            break;
         case 20:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
             memcpy(&rtt, &registers[rt], sizeof(uint64_t));
@@ -154,13 +165,13 @@ int main(int argc, char* args[]) {
 
     //file input 
     if(argc != 2) {
-        fprintf(stderr, "given wrong number of args");
+        fprintf(stderr, "Invalid tinker filepath\n");
         return 1;
     }
     char* inputFile = args[1];
     FILE *fp = fopen(inputFile, "rb");
     if(!fp) {
-        fprintf(stderr, "Invalid tinker filepath");
+        fprintf(stderr, "Invalid tinker filepath\n");
         return 1;
     }
     //reads in input from file
@@ -176,7 +187,7 @@ int main(int argc, char* args[]) {
         int res = execute(instruction, &pc);
 
         if(res == 1) {
-            fprintf(stderr, "Simulation error");
+            fprintf(stderr, "Simulation error\n");
             return 1;
         }
         else if (res == 2) {
