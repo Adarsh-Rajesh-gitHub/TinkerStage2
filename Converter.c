@@ -66,7 +66,8 @@ int execute(uint32_t instruction, uint64_t *pc) {
             // execute(inst, pc);
             break;
         case 13: 
-            *pc = memory[registers[31]-8]; break;
+            *pc = memory[registers[31]]; break;
+            registers[31] += 8;
         case 14:
             if((int64_t)registers[rs] > (int64_t)registers[rt]) {
                 *pc = registers[rd];
