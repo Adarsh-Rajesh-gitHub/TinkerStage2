@@ -15,7 +15,7 @@ uint64_t registers[32];
 
 //check if opcode, registers, label, pc are within bounds, check if insturction is empty in right place
 int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uint32_t rt, uint32_t L, uint64_t *pc) {
-    if(rd < 0 || rd > 30 || rs < 0 || rs > 30 || rt < 0 || rt > 30
+    if(rd < 0 || rd > 31 || rs < 0 || rs > 31 || rt < 0 || rt > 31
         || op < 0 || op > 29 || L > 0xFFF || *pc < 0x1000 || *pc > 512*1024-5) return 1;
     //empty places there need to implement check
     return 0;
