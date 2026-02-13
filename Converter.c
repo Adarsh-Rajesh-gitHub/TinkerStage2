@@ -32,6 +32,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
     uint32_t rs = (instruction >> 17) & 0x1F;
     uint32_t rt = (instruction >> 12) & 0x1F;
     uint32_t L = (instruction) & 0xFFF;
+    uint64_t temp;
     //checking if valid instruction:
     if(checkBounds(instruction, op, rd, rs, rt, L, pc)) {
         return 1;
@@ -59,7 +60,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             break;
         case 12:
             // uint32_t inst;
-            uint64_t temp = *pc;
+            temp = *pc;
             registers[31]-=8;
             memcpy(&memory[registers[31]], &temp, sizeof(uint64_t));
             *pc = registers[rd];
@@ -67,7 +68,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             // execute(inst, pc);
             break;
         case 13: 
-            uint64_t temp;
+            temp;
             memcpy(&temp, &memory[registers[31]], sizeof(uint64_t));
             *pc = temp;
             registers[31] += 8;
@@ -100,7 +101,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 17:
             registers[rd] = registers[rs]; break;
         case 18:
-            uint64_t temp = 0;
+            temp = 0;
             temp = registers[rd] & 0xFFFFFFFFFFFFF;
             registers[rd] = 0;
             registers[rd] = (uint64_t)L << 52;
