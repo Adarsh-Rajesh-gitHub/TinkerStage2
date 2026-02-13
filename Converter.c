@@ -17,13 +17,47 @@ uint64_t registers[32];
 int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uint32_t rt, uint32_t L, uint64_t *pc) {
     if(rd < 0 || rd > 31 || rs < 0 || rs > 31 || rt < 0 || rt > 31
         || op < 0 || op > 29 || L > 0xFFF || *pc < 0x1000 || *pc > 512*1024-5) return 1;
-    //empty places there need to implement check
+            switch(op) {
+        case 0: if(L!=0) return 1; break;
+        case 1: if(L!=0) return 1; break;
+        case 2: if(L!=0) return 1; break;
+        case 3: if(rt!= 0 || L!=0) return 1; break;
+        case 4: if(L!=0) return 1; break;
+        case 5: if(rs!=0 || rt!=0) return 1; break;
+        case 6: if(L!=0) return 1; break;
+        case 7: if(rs!=0 || rt!=0) return 1; break;
+        case 8: if(rs!=0 || rt!=0 || L!=0) return 1; break;
+        case 9: if(rs!=0 || rt!=0 || L!=0) return 1; break;
+        case 10: if(rd!=0 || rs!=0 || rt!=0) return 1; break;
+        case 11: if(rt!= 0 || L!=0) return 1; break;
+        case 12: if(L!=0) return 1; break;
+        case 13: if(rd!=0 || rs!=0 || rt!=0 || L!=0) return 1; break;
+        case 14: if(L!=0) return 1; break;
+        case 15: 
+            break;
+        case 16:if(rt!=0) return 1; break;
+        case 17:if(rt!=0 || L!=0) return 1; break;
+        case 18:if(rs!=0 || rt!=0) return 1; break;
+        case 19:if(rt!=0) return 1; break;
+        case 20:if(L!=0) return 1; break;
+        case 21:if(L!=0) return 1; break;
+        case 22:if(L!=0) return 1; break;
+        case 23:if(L!=0) return 1; break;
+        case 24: if(L!=0) return 1; break;
+        case 25: if(rs != 0 || rt != 0); break;
+        case 26: if(L!=0) break;
+        case 27: if(rs != 0 || rt != 0); break;
+        case 28: if(L!=0) return 1; break;
+        case 29: if(L!=0) return 1; break;
+        default:
+            return 1;
+    }        
     return 0;
 }
-static inline int32_t convt(uint32_t L){
-    int32_t x=(int32_t)(L<<20);
-    return x>>20;
-}
+// static inline int32_t convt(uint32_t L){
+//     int32_t x=(int32_t)(L<<20);
+//     return x>>20;
+// }
 
 //cpu can operate on same bits between signed and unsigned so only castin necessary(mult and div)
 //for floating pt casting changes the bits internally before performing operation
@@ -62,24 +96,20 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 11: 
             if(registers[rs] != 0)  *pc = registers[rd]; 
             break;
-        case 12: 
-            uint64_t rett=*pc; 
-            if(registers[31]<8) return 1;
-            uint64_t s=registers[31]-8;
-            if(s+8>sizeof(memory)) return 1;
-            if(s&7) return 1;
-            registers[31]=s;
-            memcpy(&memory[s],&rett,8);
-            *pc=registers[rd];
+        case 12: //call
+            // uint32_t inst;
+            temp = *pc;
+            registers[31]-=8;
+            memcpy(&memory[registers[31]], &temp, sizeof(uint64_t));
+            *pc = registers[rd];
+            // memcpy(&inst, &memory[*pc], sizeof(uint32_t));
+            // execute(inst, pc);
             break;
-        case 13: 
-            uint64_t sp=registers[31];
-            if(sp+8>sizeof(memory)) return 1;
-            if(sp&7) return 1;
-            uint64_t ret;
-            memcpy(&ret,&memory[sp],8);
-            registers[31]=sp+8;
-            *pc=ret;
+        case 13: //return
+            temp;
+            memcpy(&temp, &memory[registers[31]], sizeof(uint64_t));
+            *pc = temp;
+            registers[31] += 8;
             break;
         case 14:
             if((int64_t)registers[rs] > (int64_t)registers[rt]) {
@@ -153,10 +183,15 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 25: registers[rd] = registers[rd] + L; break;
         case 26: registers[rd] = registers[rs] - registers[rt]; break;
         case 27: registers[rd] = registers[rd] - L; break;
-        case 28: registers[rd] = (int32_t)registers[rs] * (int32_t)registers[rt]; break;
+        case 28: 
+            __int128 prod=(__int128)(int64_t)registers[rs]*(__int128)(int64_t)registers[rt];
+            registers[rd]=(uint64_t)prod;
+            break;
         case 29: 
-            if(registers[rt] == 0) return 1;
-            registers[rd] = (int32_t)registers[rs] / (int32_t)registers[rt]; break;
+            int64_t rttt=(int64_t)registers[rt];
+            if(rttt == 0) return 1;
+            registers[rd]=(uint64_t)((int64_t)registers[rs]/rttt);
+            break;
         default:
             return 1;
     }
