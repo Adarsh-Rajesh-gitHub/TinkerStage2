@@ -15,7 +15,7 @@ uint64_t registers[32];
 
 //returns true if mem bad
 bool badMem(uint64_t mem, int amtNeeded) {
-    return !(mem >= 0x1000 && mem <= 512*1024-(amtNeeded) && mem%amtNeeded == 0);
+    return !(mem >= 0x1000 && mem <= 512*1024-(amtNeeded) && mem%4 == 0);
 }
 
 //check if opcode, registers, label, pc are within bounds, check if insturction is empty in right place
