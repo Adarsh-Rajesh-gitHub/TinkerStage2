@@ -169,7 +169,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             int64_t addresss = (int64_t)registers[rd] + (int64_t)Ls;
             // if(badMem((uint64_t)address, 8)) return 1;
             //if(badMem(registers[rd] + Ls, 8)) return 1;
-            if((registers[rd] + Ls)%4 != 0 || addresss < 0x1000) return 1;
+            if((registers[rd] + Ls)%4 != 0 || registers[rd] + Ls < 0x1000) return 1;
             memcpy(&memory[registers[rd] + Ls], &registers[rs], sizeof(uint64_t)); break;
             // int64_t addrr=(int64_t)registers[rd]+convt(L);
             // if(addrr<0||addrr+8>(int64_t)sizeof(memory)||(addrr&7)) return 1;
