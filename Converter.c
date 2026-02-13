@@ -58,15 +58,18 @@ int execute(uint32_t instruction, uint64_t *pc) {
             if(registers[rs] != 0)  *pc = registers[rd]; 
             break;
         case 12:
-            uint32_t inst;
+            // uint32_t inst;
+            uint64_t temp = *pc;
             registers[31]-=8;
-            memcpy(&memory[registers[31]], pc, sizeof(uint64_t));
+            memcpy(&memory[registers[31]], &temp, sizeof(uint64_t));
             *pc = registers[rd];
             // memcpy(&inst, &memory[*pc], sizeof(uint32_t));
             // execute(inst, pc);
             break;
         case 13: 
-            memcpy(pc, &memory[registers[31]], sizeof(uint64_t));
+            uint64_t temp;
+            memcpy(&temp, &memory[registers[31]], sizeof(uint64_t));
+            *pc = temp;
             registers[31] += 8;
             break;
         case 14:
