@@ -149,7 +149,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
             temp = 0;
             temp = registers[rd] & ((1ULL << 52)-1);
             registers[rd] = 0;
-            registers[rd] = ((int64_t)Ls & 0xFFF) << 52;
+            registers[rd] = ((uint64_t)L & 0xFFF) << 52;
             registers[rd] |= temp;
             break;
         case 19:
@@ -204,7 +204,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
 
 
 
-int main(int argc, char* args[]) {
+int main(int argc, uint32_t *args[]) {
 
     //file input 
     if(argc != 2) {
