@@ -15,13 +15,13 @@ uint64_t registers[32];
 
 //returns true if mem bad
 bool badMem(uint64_t mem) {
-    return !(mem >= 0x1000 && mem < 512*1024-4 && mem%4 == 0);
+    return !(mem >= 0x1000 && mem < 512*1024-5 && mem%4 == 0);
 }
 
 //check if opcode, registers, label, pc are within bounds, check if insturction is empty in right place
 int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uint32_t rt, uint32_t L, uint64_t *pc) {
     if(rd < 0 || rd > 31 || rs < 0 || rs > 31 || rt < 0 || rt > 31
-        || op < 0 || op > 29 || L > 0xFFF || *pc < 0x1000 || *pc > 512*1024-5) return 1;
+        || op < 0 || op > 29 || L > 0xFFF || badMem(*pc)) return 1;
             switch(op) {
         case 0: if(L!=0) return 1; break;
         case 1: if(L!=0) return 1; break;
