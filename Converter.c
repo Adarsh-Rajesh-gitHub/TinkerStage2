@@ -44,9 +44,9 @@ int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uin
         case 22:if(L!=0) return 1; break;
         case 23:if(L!=0) return 1; break;
         case 24: if(L!=0) return 1; break;
-        case 25: if(rs != 0 || rt != 0); break;
-        case 26: if(L!=0) break;
-        case 27: if(rs != 0 || rt != 0); break;
+        case 25: if(rs != 0 || rt != 0) return 1; break;
+        case 26: if(L!=0) return 1; break;
+        case 27: if(rs != 0 || rt != 0)return 1; break;
         case 28: if(L!=0) return 1; break;
         case 29: if(L!=0) return 1; break;
         default:
@@ -135,11 +135,11 @@ int execute(uint32_t instruction, uint64_t *pc) {
             else return 1;
             break;
         case 16: 
-            int64_t addr=(int64_t)registers[rs]+convt(L);
-            if(addr<0||addr+8>(int64_t)sizeof(memory)||(addr&7)) return 1;
-            memcpy(&registers[rd],&memory[addr],8);
+             memcpy(&registers[rd], &memory[registers[rs] + L], sizeof(uint64_t)); break;
+            // int64_t addr=(int64_t)registers[rs]+convt(L);
+            // if(addr<0||addr+8>(int64_t)sizeof(memory)||(addr&7)) return 1;
+            // memcpy(&registers[rd],&memory[addr],8);
             break;
-
         case 17:
             registers[rd] = registers[rs]; break;
         case 18:
@@ -150,9 +150,10 @@ int execute(uint32_t instruction, uint64_t *pc) {
             registers[rd] += temp;
             break;
         case 19:
-            int64_t addrr=(int64_t)registers[rd]+convt(L);
-            if(addrr<0||addrr+8>(int64_t)sizeof(memory)||(addrr&7)) return 1;
-            memcpy(&memory[addrr],&registers[rs],8);
+            memcpy(&memory[registers[rd] + L], &registers[rs], sizeof(uint64_t)); break;
+            // int64_t addrr=(int64_t)registers[rd]+convt(L);
+            // if(addrr<0||addrr+8>(int64_t)sizeof(memory)||(addrr&7)) return 1;
+            // memcpy(&memory[addrr],&registers[rs],8);
             break;
         case 20:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
