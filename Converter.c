@@ -111,8 +111,8 @@ int execute(uint32_t instruction, uint64_t *pc) {
         case 21:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
             memcpy(&rtt, &registers[rt], sizeof(uint64_t));
-            rtt-=rss;
-            memcpy(&registers[rd], &rtt, sizeof(double));
+            rss-=rtt;
+            memcpy(&registers[rd], &rss, sizeof(double));
             break;
         case 22:
             memcpy(&rss, &registers[rs], sizeof(uint64_t));
