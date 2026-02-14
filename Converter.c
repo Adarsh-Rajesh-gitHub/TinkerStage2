@@ -19,7 +19,7 @@ bool badMem(uint64_t mem, int amtNeeded) {
     return !(mem >= 0x1000 && mem <= 512*1024-(amtNeeded) && mem%4 == 0);
 }
 
-static int readStrict(uint64_t *out) {
+int readStrict(uint64_t *out) {
     char buf[256];
     if(scanf("%255s", buf) != 1) return 0; 
     if(buf[0] == '-' || buf[0] == '+') return 0;
@@ -75,10 +75,7 @@ int checkBounds(uint32_t instruction, uint32_t op, uint32_t rd, uint32_t rs, uin
     }        
     return 0;
 }
-// static inline int32_t convt(uint32_t L){
-//     int32_t x=(int32_t)(L<<20);
-//     return x>>20;
-// }
+
 
 //cpu can operate on same bits between signed and unsigned so only castin necessary(mult and div)
 //for floating pt casting changes the bits internally before performing operation
@@ -239,7 +236,7 @@ int execute(uint32_t instruction, uint64_t *pc) {
 }
 
 
-
+#ifndef TESTING
 int main(int argc, char *argv[]) {
 
     //file input 
@@ -284,3 +281,4 @@ int main(int argc, char *argv[]) {
 
 
 }
+#endif
